@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio to Text Converter | OpenAI Whisper</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-microphone-alt"></i> Audio to Text Converter</h1>
+            <p class="subtitle">🌿 Powered by OpenAI Whisper • Convert speech to text instantly 🎯</p>
+        </header>
+
+        <main class="main-content">
+            <div class="upload-section">
+                <div class="upload-box" id="uploadBox">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <h3>Upload Audio File</h3>
+                    <p>Drag & drop or click to browse</p>
+                    <p class="formats">Supported: MP3, WAV, M4A, WEBM, MP4</p>
+                    <input type="file" id="audioFile" accept=".mp3,.wav,.m4a,.webm,.mp4,.mpga,.mpeg">
+                    <label for="audioFile" class="browse-btn">Browse Files</label>
+                </div>
+
+                <div class="recording-section">
+                    <h3><i class="fas fa-microphone"></i> Or Record Audio</h3>
+                    <div class="recording-controls">
+                        <button id="recordBtn" class="record-btn">
+                            <i class="fas fa-microphone"></i> Start Recording
+                        </button>
+                        <button id="stopBtn" class="stop-btn" disabled>
+                            <i class="fas fa-stop"></i> Stop Recording
+                        </button>
+                    </div>
+                    <div class="recording-status">
+                        <div id="recordingIndicator" class="recording-indicator">
+                            <span class="pulse"></span>
+                            <span>Recording...</span>
+                        </div>
+                        <audio id="recordedAudio" controls style="display: none; margin-top: 15px;"></audio>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-section">
+                <div class="control-group">
+                    <label for="language"><i class="fas fa-globe"></i> Language (Optional)</label>
+                    <select id="language">
+                        <option value="">Auto Detect</option>
+                        <option value="en">English</option>
+                        <option value="es">Spanish</option>
+                        <option value="fr">French</option>
+                        <option value="de">German</option>
+                        <option value="zh">Chinese</option>
+                        <option value="ja">Japanese</option>
+                        <option value="ko">Korean</option>
+                        <option value="hi">Hindi</option>
+                        <option value="ar">Arabic</option>
+                    </select>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="transcribeBtn" class="btn-primary">
+                        <i class="fas fa-transcript"></i> Transcribe to Text
+                    </button>
+                    <button id="translateBtn" class="btn-secondary">
+                        <i class="fas fa-language"></i> Translate to English
+                    </button>
+                    <button id="clearBtn" class="btn-clear">
+                        <i class="fas fa-trash"></i> Clear All
+                    </button>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <div class="results-header">
+                    <h3><i class="fas fa-file-alt"></i> Transcription Results</h3>
+                    <div class="result-actions">
+                        <button id="copyBtn" class="btn-action">
+                            <i class="far fa-copy"></i> Copy
+                        </button>
+                        <button id="downloadBtn" class="btn-action">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                    </div>
+                </div>
+
+                <div class="loading-container" id="loadingContainer">
+                    <div class="spinner"></div>
+                    <p>Processing audio... This may take a moment.</p>
+                </div>
+
+                <div class="results-container">
+                    <div class="result-card">
+                        <div class="result-header">
+                            <h4>Transcribed Text</h4>
+                            <div class="result-meta">
+                                <span id="languageBadge" class="badge">Language: --</span>
+                                <span id="durationBadge" class="badge">Duration: --</span>
+                            </div>
+                        </div>
+                        <div class="result-content">
+                            <textarea id="resultText" readonly placeholder="Your transcribed text will appear here..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="result-card">
+                        <div class="result-header">
+                            <h4>Segments</h4>
+                            <span id="segmentsCount" class="badge">0 segments</span>
+                        </div>
+                        <div class="segments-container" id="segmentsContainer">
+                            <p class="empty-state">No segments available yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="info-card">
+                    <i class="fas fa-info-circle"></i>
+                    <h4>How to Use</h4>
+                    <ol>
+                        <li>Upload an audio file or record directly</li>
+                        <li>Select language (or leave auto-detect)</li>
+                        <li>Click "Transcribe" or "Translate to English"</li>
+                        <li>Copy or download your text</li>
+                    </ol>
+                </div>
+                <div class="info-card">
+                    <i class="fas fa-cogs"></i>
+                    <h4>Features</h4>
+                    <ul>
+                        <li>Supports multiple audio formats</li>
+                        <li>Real-time recording</li>
+                        <li>Multi-language transcription</li>
+                        <li>Translation to English</li>
+                        <li>Segment-by-segment results</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>Powered by OpenAI Whisper API • Backend: <span id="backendUrl">Detecting...</span></p>
+            <p class="status" id="connectionStatus"><i class="fas fa-circle"></i> Checking connection...</p>
+        </footer>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+    <script src="script.js"></script>
+</body>
+</html>
