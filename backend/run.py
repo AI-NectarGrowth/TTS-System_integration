@@ -34,28 +34,31 @@ def start_flask_app():
     env = os.environ.copy()
     env['FLASK_ENV'] = 'development'
     
-    # Start Flask server
+    # Start Flask server with visible output
     flask_process = subprocess.Popen(
         [sys.executable, 'server.py'],
         cwd=os.path.dirname(os.path.abspath(__file__)),
         env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True
+        creationflags=subprocess.CREATE_NEW_CONSOLE if sys.platform == 'win32' else 0
     )
     
     # Wait for server to start
-    time.sleep(3)
+    print("⏳ Waiting for Flask server to start...")
+    time.sleep(5)
     
-    if flask_process.poll() is not None:
-        # Server failed to start
-        stdout, stderr = flask_process.communicate()
-        print("❌ Failed to start Flask server:")
-        print(stderr)
+    # Check if server is responding
+    import socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.connect_ex(('localhost', 5000))
+    sock.close()
+    
+    if result == 0:
+        print("✅ Flask backend is running on http://localhost:5000")
+        return flask_process
+    else:
+        print("❌ Flask server failed to start on port 5000")
+        flask_process.terminate()
         return None
-    
-    print("✅ Flask backend is running on http://localhost:5000")
-    return flask_process
 
 def start_ngrok_tunnel():
     """Start ngrok tunnel for HTTPS access"""
@@ -67,11 +70,26 @@ def start_ngrok_tunnel():
         ngrok.set_auth_token(ngrok_auth_token)
     
     try:
-        # Create HTTP tunnel
-        tunnel = ngrok.connect(5000, bind_tls=True)
+        # Kill any existing ngrok processes
+        try:
+            ngrok.kill()
+        except:
+            pass
+        
+        # Create HTTP tunnel with additional options
+        tunnel = ngrok.connect(
+            5000, 
+            bind_tls=True,
+            inspect=False  # Disable ngrok inspection UI
+        )
         public_url = tunnel.public_url
+        
+        # Wait a moment for tunnel to stabilize
+        time.sleep(2)
+        
         print(f"✅ Ngrok tunnel created: {public_url}")
         print(f"📋 Use this URL for microphone access: {public_url}")
+        print(f"💡 Tip: Add 'ngrok-skip-browser-warning: 1' header to skip warning page")
         return public_url
     except Exception as e:
         print(f"⚠️  Failed to start ngrok: {e}")

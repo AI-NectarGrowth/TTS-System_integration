@@ -30,7 +30,6 @@ ENV/
 .env
 .env.local
 .env.*.local
-
 # Flask
 instance/
 .webassets-cache

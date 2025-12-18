@@ -7,13 +7,16 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <h1><i class="fas fa-microphone-alt"></i> Audio to Text Converter</h1>
-            <p class="subtitle">🌿 Powered by OpenAI Whisper • Convert speech to text instantly 🎯</p>
-        </header>
+            <h1><i class="fas fa-microphone-alt"></i>MedDialog</h1>
+            
+        <p class="subtitle">🌿 Medical-focused transcription • Doctor ↔ Patient diarization • Auto-translate to English • Generate structured SOAP notes</p>
+            </header>
 
         <main class="main-content">
             <div class="upload-section">
@@ -27,7 +30,7 @@
                 </div>
 
                 <div class="recording-section">
-                    <h3><i class="fas fa-microphone"></i> Or Record Audio</h3>
+                    <h3><i class="fas fa-microphone"></i> Start Recording Conversation</h3>
                     <div class="recording-controls">
                         <button id="recordBtn" class="record-btn">
                             <i class="fas fa-microphone"></i> Start Recording
@@ -65,7 +68,7 @@
 
                 <div class="action-buttons">
                     <button id="transcribeBtn" class="btn-primary">
-                        <i class="fas fa-transcript"></i> Transcribe to Text
+                        <i class="fas fa-file-medical"></i> Generate SOAP Notes and Transcribe Text
                     </button>
                     <button id="translateBtn" class="btn-secondary">
                         <i class="fas fa-language"></i> Translate to English
@@ -76,7 +79,65 @@
                 </div>
             </div>
 
-            <div class="results-section">
+            <div class="loading-container" id="loadingContainer">
+                <div class="spinner"></div>
+                <p>Processing audio and generating SOAP notes... This may take a moment.</p>
+            </div>
+
+            <!-- SOAP Notes Section - Now First -->
+            <div class="results-section" id="soapSection" style="display: none;">
+                <div class="results-header">
+                    <h3><i class="fas fa-notes-medical"></i> SOAP Notes</h3>
+                </div>
+                
+                <div class="result-card" id="soapCard">
+                    <div class="result-header">
+                        <h4><i class="fas fa-file-medical"></i> Medical Documentation</h4>
+                        <div class="result-actions">
+                            <button id="editSoapBtn" class="btn-action">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button id="saveSoapBtn" class="btn-action" style="display: none;">
+                                <i class="fas fa-save"></i> Save
+                            </button>
+                            <button id="copySoapBtn" class="btn-action">
+                                <i class="far fa-copy"></i> Copy
+                            </button>
+                            <div class="dropdown">
+                                <button id="downloadSoapBtn" class="btn-action">
+                                    <i class="fas fa-download"></i> Export <i class="fas fa-caret-down"></i>
+                                </button>
+                                <div class="dropdown-menu" id="exportMenu">
+                                    <a href="#" id="exportPDF"><i class="fas fa-file-pdf"></i> PDF</a>
+                                    <a href="#" id="exportWord"><i class="fas fa-file-word"></i> Word</a>
+                                    <a href="#" id="exportText"><i class="fas fa-file-alt"></i> Text</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="soap-container" id="soapContainer">
+                        <div class="soap-section">
+                            <h5><i class="fas fa-user-injured"></i> Subjective</h5>
+                            <div id="soapSubjective" class="soap-content" contenteditable="false"></div>
+                        </div>
+                        <div class="soap-section">
+                            <h5><i class="fas fa-stethoscope"></i> Objective</h5>
+                            <div id="soapObjective" class="soap-content" contenteditable="false"></div>
+                        </div>
+                        <div class="soap-section">
+                            <h5><i class="fas fa-diagnoses"></i> Assessment</h5>
+                            <div id="soapAssessment" class="soap-content" contenteditable="false"></div>
+                        </div>
+                        <div class="soap-section">
+                            <h5><i class="fas fa-clipboard-list"></i> Plan</h5>
+                            <div id="soapPlan" class="soap-content" contenteditable="false"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transcription Results Section - Now Second -->
+            <div class="results-section" id="transcriptionSection" style="display: none;">
                 <div class="results-header">
                     <h3><i class="fas fa-file-alt"></i> Transcription Results</h3>
                     <div class="result-actions">
@@ -89,22 +150,30 @@
                     </div>
                 </div>
 
-                <div class="loading-container" id="loadingContainer">
-                    <div class="spinner"></div>
-                    <p>Processing audio... This may take a moment.</p>
-                </div>
-
                 <div class="results-container">
                     <div class="result-card">
                         <div class="result-header">
-                            <h4>Transcribed Text</h4>
+                            <h4><i class="fas fa-comments"></i> Conversation</h4>
+                            <div class="result-meta">
+                                <span id="conversationCount" class="badge">0 turns</span>
+                                <span id="diarizationBadge" class="badge">Diarization: --</span>
+                            </div>
+                        </div>
+                        <div class="conversation-container" id="conversationContainer">
+                            <p class="empty-state">No conversation detected yet</p>
+                        </div>
+                    </div>
+
+                    <div class="result-card">
+                        <div class="result-header">
+                            <h4>Full Transcribed Text</h4>
                             <div class="result-meta">
                                 <span id="languageBadge" class="badge">Language: --</span>
                                 <span id="durationBadge" class="badge">Duration: --</span>
                             </div>
                         </div>
                         <div class="result-content">
-                            <textarea id="resultText" readonly placeholder="Your transcribed text will appear here..."></textarea>
+                            <textarea id="resultText" readonly placeholder="Full transcription will appear here..."></textarea>
                         </div>
                     </div>
 
@@ -127,19 +196,22 @@
                     <ol>
                         <li>Upload an audio file or record directly</li>
                         <li>Select language (or leave auto-detect)</li>
-                        <li>Click "Transcribe" or "Translate to English"</li>
-                        <li>Copy or download your text</li>
+                        <li>Click "Generate SOAP Notes and Transcribe Text"</li>
+                        <li>Review SOAP notes (shown first), then transcription details</li>
+                        <li>Edit, copy or export in your preferred format</li>
                     </ol>
                 </div>
                 <div class="info-card">
                     <i class="fas fa-cogs"></i>
                     <h4>Features</h4>
                     <ul>
-                        <li>Supports multiple audio formats</li>
-                        <li>Real-time recording</li>
+                        <li>Automatic SOAP note generation</li>
+                        <li>AI-powered speaker diarization</li>
                         <li>Multi-language transcription</li>
                         <li>Translation to English</li>
-                        <li>Segment-by-segment results</li>
+                        <li>Export to PDF, Word & Text formats</li>
+                        <li>Real-time audio recording</li>
+                        <li>Edit mode for SOAP notes</li>
                     </ul>
                 </div>
             </div>

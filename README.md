@@ -1,6 +1,6 @@
 # 🎤 Audio to Text Converter with OpenAI Whisper
 
-A complete web application for converting speech to text using OpenAI's Whisper API.
+A complete web application for converting speech to text using OpenAI's Whisper API with **speaker diarization** for doctor-patient conversations.
 
 ## ✨ Features
 
@@ -8,9 +8,11 @@ A complete web application for converting speech to text using OpenAI's Whisper 
 - 📁 **Upload audio files** (MP3, WAV, M4A, WEBM, MP4)
 - 🌍 **Multi-language transcription** (auto-detect or specify)
 - 🔤 **Translate to English**
+- 👥 **Speaker Diarization** - Detect and separate Doctor/Patient conversations
+- 💬 **Conversation View** - Chat-like display with speaker labels
 - 📊 **Segment-by-segment results** with timestamps
 - 📋 **Copy & download** transcriptions
-- 🎨 **Modern, responsive UI**
+- 🎨 **Modern, responsive UI** with nature-inspired color scheme
 
 ## 🚀 Quick Start
 
